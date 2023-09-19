@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
 
-pragma solidity ^0.8.18;
 import {MockV3Aggregator} from "../test/mock/MockV3Aggregator.sol";
 import {Script} from "forge-std/Script.sol";
 
@@ -11,8 +11,10 @@ contract HelperConfig is Script {
     int256 public constant INITIAL_PRICE = 2000e8;
 
     struct NetworkConfig {
-        address priceFeed; //ETH/USD pricefeed address
+        address priceFeed;
     }
+
+    event HelperConfig__CreatedMockPriceFeed(address priceFeed);
 
     constructor() {
         if (block.chainid == 11155111) {
@@ -22,15 +24,20 @@ contract HelperConfig is Script {
         }
     }
 
-    function getSepoliaEthConfig() public pure returns (NetworkConfig memory) {
-        NetworkConfig memory sepoliaConfig = NetworkConfig({
-            priceFeed: 0x694AA1769357215DE4FAC081bf1f309aDC325306
+    function getSepoliaEthConfig()
+        public
+        pure
+        returns (NetworkConfig memory sepoliaNetworkConfig)
+    {
+        sepoliaNetworkConfig = NetworkConfig({
+            priceFeed: 0x694AA1769357215DE4FAC081bf1f309aDC325306 // ETH / USD
         });
-
-        return sepoliaConfig;
     }
 
-    function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
+    function getOrCreateAnvilEthConfig()
+        public
+        returns (NetworkConfig memory anvilNetworkConfig)
+    {
         // Check to see if we set an active network config
         if (activeNetworkConfig.priceFeed != address(0)) {
             return activeNetworkConfig;
@@ -41,12 +48,8 @@ contract HelperConfig is Script {
             INITIAL_PRICE
         );
         vm.stopBroadcast();
-        // emit HelperConfig__CreatedMockPriceFeed(address(mockPriceFeed));
+        emit HelperConfig__CreatedMockPriceFeed(address(mockPriceFeed));
 
-        NetworkConfig memory anvilConfig = NetworkConfig({
-            priceFeed: address(mockPriceFeed)
-        });
-
-        return anvilConfig;
+        anvilNetworkConfig = NetworkConfig({priceFeed: address(mockPriceFeed)});
     }
 }
